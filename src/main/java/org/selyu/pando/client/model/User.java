@@ -25,4 +25,12 @@ public final class User {
     public String getUsername() {
         return username;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "uuid=" + uuid +
+                ", username='" + username + '\'' +
+                '}';
+    }
 }

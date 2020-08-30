@@ -5,8 +5,10 @@ import com.google.gson.GsonBuilder;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 import org.selyu.pando.client.exception.ClientException;
+import org.selyu.pando.client.model.Lookup;
 import org.selyu.pando.client.model.User;
 import org.selyu.pando.client.model.UserSchema;
+import org.selyu.pando.client.service.ILookupService;
 import org.selyu.pando.client.service.IPingService;
 import org.selyu.pando.client.service.IUserService;
 import retrofit2.Response;
@@ -24,6 +26,7 @@ import static org.selyu.pando.client.util.Preconditions.validateState;
 public class PandoClient {
     private final IPingService pingService;
     private final IUserService userService;
+    private final ILookupService lookupService;
 
     public PandoClient(@NotNull String baseUrl, @NotNull String authToken) {
         requireNotNull(baseUrl, authToken);
@@ -43,6 +46,7 @@ public class PandoClient {
 
         pingService = retrofit.create(IPingService.class);
         userService = retrofit.create(IUserService.class);
+        lookupService = retrofit.create(ILookupService.class);
 
         try {
             Response<String> pingResponse = pingService.ping().execute();
@@ -111,6 +115,52 @@ public class PandoClient {
             return response.body();
         } catch (IOException e) {
             throw new ClientException("Caught exception creating user by id '%s'", e);
+        }
+    }
+
+    @NotNull
+    public Optional<Lookup> getLookupById(@NotNull UUID uuid) throws ClientException {
+        requireNotNull(uuid);
+        try {
+            Response<Lookup> response = lookupService.getById(uuid).execute();
+            if (response.code() == 404) {
+                return Optional.empty();
+            }
+
+            if (!response.isSuccessful()) {
+                throw new ClientException(String.format("Getting lookup by id '%s' un-successful, status code = %s", uuid, response.code()));
+            }
+
+            if (response.body() == null) {
+                throw new ClientException(String.format("Getting lookup by id '%s' un-successful, parsed body is null.", uuid));
+            }
+
+            return Optional.of(response.body());
+        } catch (IOException e) {
+            throw new ClientException(String.format("Caught exception getting lookup by id '%s'", uuid), e);
+        }
+    }
+
+    @NotNull
+    public Optional<Lookup> getLookupByUsername(@NotNull String username) throws ClientException {
+        requireNotNull(username);
+        try {
+            Response<Lookup> response = lookupService.getByUsername(username).execute();
+            if (response.code() == 404) {
+                return Optional.empty();
+            }
+
+            if (!response.isSuccessful()) {
+                throw new ClientException(String.format("Getting lookup by username '%s' un-successful, status code = %s", username, response.code()));
+            }
+
+            if (response.body() == null) {
+                throw new ClientException(String.format("Getting lookup by username '%s' un-successful, parsed body is null.", username));
+            }
+
+            return Optional.of(response.body());
+        } catch (IOException e) {
+            throw new ClientException(String.format("Caught exception getting lookup by username '%s'", username), e);
         }
     }
 }

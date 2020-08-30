@@ -7,6 +7,7 @@ import org.selyu.pando.client.PandoClient;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class Tests {
@@ -30,5 +31,15 @@ public class Tests {
     @Test
     void user02_create() {
         assertNotNull(client.createUser(UUID.fromString("88352a08-321e-48d0-83aa-1dca5e803ce2"), "L1LLIAN"));
+    }
+
+    @Test
+    void lookup00_get_non_existent() {
+        assertTrue(client.getLookupById(UUID.randomUUID()).isEmpty());
+    }
+
+    @Test
+    void lookup01_get_non_existent() {
+        assertTrue(client.getLookupByUsername("37g9Fy").isEmpty());
     }
 }
