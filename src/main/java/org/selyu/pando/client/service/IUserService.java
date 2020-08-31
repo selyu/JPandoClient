@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.UUID;
 
 public interface IUserService {
-    @GET("users")
+    @GET("user")
     Call<List<User>> getAll();
 
-    @POST("users")
+    @POST("user")
     Call<User> create(@Body UserCreateRequest request);
 
-    @GET("users/id/{id}")
+    @GET("user/id/{id}")
     Call<User> getOne(@Path("id") UUID uuid);
 }

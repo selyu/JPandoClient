@@ -3,6 +3,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.selyu.pando.client.PandoClient;
+import org.selyu.pando.client.model.Rank;
 
 import java.util.UUID;
 
@@ -41,5 +42,37 @@ public class Tests {
     @Test
     void lookup01_get_non_existent() {
         assertTrue(client.getLookupByUsername("37g9Fy").isEmpty());
+    }
+
+    @Test
+    void rank00_get_all() {
+        assertNotNull(client.getAllRanks());
+    }
+
+    @Test
+    void rank01_create() {
+        assertTrue(client.createRank("123"));
+    }
+
+    @Test
+    void rank02_get() {
+        assertTrue(client.getRankByName("123").isPresent());
+    }
+
+    @Test
+    void rank03_get_non_existent() {
+        assertTrue(client.getRankById(new UUID(0, 0)).isEmpty());
+    }
+
+    @Test
+    void rank04_edit() {
+        Rank rank = client.getRankByName("123").orElseThrow();
+        assertTrue(client.editRank(rank.getUuid(), "Color", "WHITE"));
+    }
+
+    @Test
+    void rank05_delete() {
+        Rank rank = client.getRankByName("123").orElseThrow();
+        assertTrue(client.deleteRank(rank.getUuid()));
     }
 }

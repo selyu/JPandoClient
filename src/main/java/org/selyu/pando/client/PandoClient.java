@@ -5,11 +5,10 @@ import com.google.gson.GsonBuilder;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 import org.selyu.pando.client.exception.ClientException;
-import org.selyu.pando.client.model.Lookup;
-import org.selyu.pando.client.model.User;
-import org.selyu.pando.client.model.UserCreateRequest;
+import org.selyu.pando.client.model.*;
 import org.selyu.pando.client.service.ILookupService;
 import org.selyu.pando.client.service.IPingService;
+import org.selyu.pando.client.service.IRankService;
 import org.selyu.pando.client.service.IUserService;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -27,6 +26,7 @@ public class PandoClient {
     private final IPingService pingService;
     private final IUserService userService;
     private final ILookupService lookupService;
+    private final IRankService rankService;
 
     public PandoClient(@NotNull String baseUrl, @NotNull String authToken) throws ClientException {
         requireNotNull(baseUrl, authToken);
@@ -47,6 +47,7 @@ public class PandoClient {
         pingService = retrofit.create(IPingService.class);
         userService = retrofit.create(IUserService.class);
         lookupService = retrofit.create(ILookupService.class);
+        rankService = retrofit.create(IRankService.class);
 
         ping();
     }
@@ -165,6 +166,123 @@ public class PandoClient {
             return Optional.of(response.body());
         } catch (IOException e) {
             throw new ClientException(String.format("Caught exception getting lookup by username '%s'", username), e);
+        }
+    }
+
+    @NotNull
+    public List<Rank> getAllRanks() {
+        try {
+            Response<List<Rank>> response = rankService.getAll().execute();
+            if (!response.isSuccessful()) {
+                throw new ClientException("Getting all ranks un-successful, status code = " + response.code());
+            }
+
+            if (response.body() == null) {
+                throw new ClientException("Getting all ranks un-successful, parsed body is null.");
+            }
+
+            return response.body();
+        } catch (IOException e) {
+            throw new ClientException("Caught exception getting all ranks", e);
+        }
+    }
+
+    public boolean createRank(@NotNull String name) throws ClientException {
+        try {
+            Response<Void> response = rankService.createRank(new RankCreateRequest(name)).execute();
+            if (response.code() == 400) {
+                return false;
+            }
+
+            if (!response.isSuccessful()) {
+                throw new ClientException(String.format("Creating rank by name '%s' un-successful, status code = %s", name, response.code()));
+            }
+
+            return true;
+        } catch (IOException e) {
+            throw new ClientException(String.format("Caught exception creating rank by name '%s'", name), e);
+        }
+    }
+
+    public boolean deleteRank(@NotNull UUID uuid) throws ClientException {
+        requireNotNull(uuid);
+        try {
+            Response<Void> response = rankService.delete(uuid).execute();
+            if (response.code() == 404) {
+                return false;
+            }
+
+            if (!response.isSuccessful()) {
+                throw new ClientException(String.format("Deleting rank by id '%s' un-successful, status code = %s", uuid, response.code()));
+            }
+
+            return true;
+        } catch (IOException e) {
+            throw new ClientException(String.format("Caught exception deleting rank by id '%s'", uuid), e);
+        }
+    }
+
+    @NotNull
+    public Optional<Rank> getRankById(@NotNull UUID uuid) throws ClientException {
+        requireNotNull(uuid);
+        try {
+            Response<Rank> response = rankService.getRank(uuid).execute();
+            if (response.code() == 404) {
+                return Optional.empty();
+            }
+
+            if (!response.isSuccessful()) {
+                throw new ClientException(String.format("Getting rank by id '%s' un-successful, status code = %s", uuid, response.code()));
+            }
+
+            if (response.body() == null) {
+                throw new ClientException(String.format("Getting rank by id '%s' un-successful, parsed body is null.", uuid));
+            }
+
+            return Optional.of(response.body());
+        } catch (IOException e) {
+            throw new ClientException(String.format("Caught exception getting rank by id '%s'", uuid), e);
+        }
+    }
+
+    @NotNull
+    public Optional<Rank> getRankByName(@NotNull String name) throws ClientException {
+        requireNotNull(name);
+        try {
+            Response<Rank> response = rankService.getRank(name).execute();
+            if (response.code() == 404) {
+                return Optional.empty();
+            }
+
+            if (!response.isSuccessful()) {
+                throw new ClientException(String.format("Getting rank by name '%s' un-successful, status code = %s", name, response.code()));
+            }
+
+            if (response.body() == null) {
+                throw new ClientException(String.format("Getting rank by name '%s' un-successful, parsed body is null.", name));
+            }
+
+            return Optional.of(response.body());
+        } catch (IOException e) {
+            throw new ClientException(String.format("Caught exception getting rank by name '%s'", name), e);
+        }
+    }
+
+    public boolean editRank(@NotNull UUID uuid, @NotNull String field, @NotNull Object newValue) {
+        requireNotNull(uuid, field, newValue);
+        try {
+            Response<Void> response = rankService.editRankField(uuid, new RankEditFieldRequest(field, newValue)).execute();
+            if (response.code() == 404) {
+                return false;
+            }
+
+            if (!response.isSuccessful()) {
+                throw new ClientException(String.format("Editing rank by id '%s' un-successful, status code = %s", uuid, response.code()));
+            }
+
+            return true;
+        } catch (IOException e) {
+            throw new ClientException(String.format("Caught exception editing rank by id '%s'", uuid), e);
         }
     }
 }
