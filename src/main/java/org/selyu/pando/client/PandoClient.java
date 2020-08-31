@@ -28,7 +28,7 @@ public class PandoClient {
     private final IUserService userService;
     private final ILookupService lookupService;
 
-    public PandoClient(@NotNull String baseUrl, @NotNull String authToken) {
+    public PandoClient(@NotNull String baseUrl, @NotNull String authToken) throws ClientException {
         requireNotNull(baseUrl, authToken);
         validateState(!baseUrl.isEmpty());
 
@@ -48,6 +48,10 @@ public class PandoClient {
         userService = retrofit.create(IUserService.class);
         lookupService = retrofit.create(ILookupService.class);
 
+        ping();
+    }
+
+    public void ping() throws ClientException {
         try {
             Response<String> pingResponse = pingService.ping().execute();
             if (pingResponse.code() == 401) {
