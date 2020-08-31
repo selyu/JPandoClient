@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.selyu.pando.client.exception.ClientException;
 import org.selyu.pando.client.model.Lookup;
 import org.selyu.pando.client.model.User;
-import org.selyu.pando.client.model.UserSchema;
+import org.selyu.pando.client.model.UserCreateRequest;
 import org.selyu.pando.client.service.ILookupService;
 import org.selyu.pando.client.service.IPingService;
 import org.selyu.pando.client.service.IUserService;
@@ -107,7 +107,7 @@ public class PandoClient {
     public User createUser(@NotNull UUID uuid, @NotNull String username) throws ClientException {
         requireNotNull(uuid, username);
         try {
-            Response<User> response = userService.create(new UserSchema(uuid, username)).execute();
+            Response<User> response = userService.create(new UserCreateRequest(uuid, username)).execute();
             if (!response.isSuccessful()) {
                 throw new ClientException(String.format("Creating user by id '%s' un-successful, status code = %s", uuid, response.code()));
             }
